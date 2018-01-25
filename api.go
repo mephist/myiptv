@@ -38,6 +38,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			resp.Body.Close()
 		}
+		if len(gCurlTimeMap) > 1000 {
+			gCurlTimeMap = make(map[string]int64)
+		}
 	}
 	w.Write(body)
 }
