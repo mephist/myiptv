@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	log "github.com/tominescu/double-golang/simplelog"
@@ -21,18 +22,20 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		http.Error(w, err.Error(), 503)
-		return
+	if strings.HasSuffix(r.URL.Path, "index.m3u8") {
+		go CurlCount(r.URL.Path)
 	}
-	ts := gCurlTimeMap[r.URL.Path]
+	io.Copy(w, resp.Body)
+}
+
+func CurlCount(path string) {
+	ts := gCurlTimeMap[path]
 	now := time.Now().Unix()
-	if now-ts >= 30 {
-		gCurlTimeMap[r.URL.Path] = now
-		url = fmt.Sprintf("http://tv.byr.cn/player_count/res.gif?play_url=http://tv.byr.cn:8888%s&refer=http://tv.byr.cn/tv-show-detail/1&title=BYR-IPTV", r.URL.Path)
+	if now-ts >= 25 {
+		gCurlTimeMap[path] = now
+		url := fmt.Sprintf("http://tv.byr.cn/player_count/res.gif?play_url=http://tv.byr.cn:8888%s&refer=http://tv.byr.cn/tv-show&title=BYR-IPTV", path)
 		log.Debug("Curl count url: %s", url)
-		resp, err = http.Get(url)
+		resp, err := http.Get(url)
 		if err != nil {
 			log.Warn("curl count url: %s error: %s", url, err)
 		} else {
@@ -42,5 +45,4 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			gCurlTimeMap = make(map[string]int64)
 		}
 	}
-	w.Write(body)
 }
