@@ -10,6 +10,7 @@ func main() {
 	log.SetLevel(log.DEBUG)
 	http.HandleFunc("/sitv.m3u8", sitvHandler)
 	http.HandleFunc("/byr.m3u8", indexHandler)
+	http.HandleFunc("/live/", qmHandler)
 	http.HandleFunc("/", apiHandler)
 	http.ListenAndServe(":8090", nil)
 }
