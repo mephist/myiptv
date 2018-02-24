@@ -3,12 +3,12 @@ package main
 import (
 	"io/ioutil"
 	"net/http"
-	"strings"
+	"regexp"
 
 	log "github.com/tominescu/double-golang/simplelog"
 )
 
-func sitvHandler(w http.ResponseWriter, r *http.Request) {
+func litvHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
 	err := r.ParseForm()
 	if err != nil {
@@ -20,7 +20,7 @@ func sitvHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(503), 503)
 		return
 	}
-	url := "http://www.sitv.com.cn/GetPlayPath/GetPlayPath?type=LIVE&se=sitv&ct=1&code=" + id
+	url := "http://btsu4k5-hisng.cdn.hinet.net/live/pool/" + id + "/litv-pc/index.m3u8"
 	resp, err := http.Get(url)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
@@ -32,7 +32,13 @@ func sitvHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	dst := strings.Replace(string(body), "2300000", "4000000", 1)
+	re := regexp.MustCompile(`4gtv.*.m3u8`)
+	hls := re.FindAll(body, -1)
+	if len(hls) < 1 {
+		http.Error(w, "Cant't find m3u8 url", 503)
+		return
+	}
+	dst := "http://btsu4k5-hisng.cdn.hinet.net/live/pool/" + id + "/litv-pc/" + string(hls[len(hls)-1])
 	w.Header().Set("Location", dst)
 	http.Error(w, http.StatusText(302), 302)
 }

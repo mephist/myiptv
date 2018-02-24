@@ -9,7 +9,7 @@ import (
 	log "github.com/tominescu/double-golang/simplelog"
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+func byrHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
 	err := r.ParseForm()
 	if err != nil {

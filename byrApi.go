@@ -12,7 +12,7 @@ import (
 
 var gCurlTimeMap = make(map[string]int64)
 
-func apiHandler(w http.ResponseWriter, r *http.Request) {
+func byrApiHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
 	url := "http://tv.byr.cn:8888" + r.URL.Path
 	log.Debug("Curl url: %s", url)

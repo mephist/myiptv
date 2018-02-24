@@ -9,8 +9,14 @@ import (
 func main() {
 	log.SetLevel(log.DEBUG)
 	http.HandleFunc("/sitv.m3u8", sitvHandler)
-	http.HandleFunc("/byr.m3u8", indexHandler)
+	http.HandleFunc("/byr.m3u8", byrHandler)
+	http.HandleFunc("/youtube.m3u8", youtubeIndexHandler)
+	http.HandleFunc("/litv.m3u8", litvHandler)
 	http.HandleFunc("/live/", qmHandler)
-	http.HandleFunc("/", apiHandler)
+	http.HandleFunc("/sdlive/", sctvHandler)
+	http.HandleFunc("/hdlive/", sctvHandler)
+	http.HandleFunc("/api/", youtubeApiHandler)
+	http.HandleFunc("/videoplayback/", youtubeVideoHandler)
+	http.HandleFunc("/", byrApiHandler)
 	http.ListenAndServe(":8090", nil)
 }
