@@ -32,7 +32,7 @@ func litvHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	re := regexp.MustCompile(`4gtv.*.m3u8`)
+	re := regexp.MustCompile(`.*.m3u8`)
 	hls := re.FindAll(body, -1)
 	if len(hls) < 1 {
 		http.Error(w, "Cant't find m3u8 url", 503)

@@ -20,7 +20,11 @@ func sitvHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(503), 503)
 		return
 	}
-	url := "http://www.sitv.com.cn/GetPlayPath/GetPlayPath?type=LIVE&se=sitv&ct=1&code=" + id
+	ct := r.Form.Get("ct")
+	if ct == "" {
+		ct = "1"
+	}
+	url := "http://www.sitv.com.cn/GetPlayPath/GetPlayPath?type=LIVE&se=sitv&ct=" + ct + "&code=" + id
 	resp, err := http.Get(url)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
