@@ -63,6 +63,7 @@ func youjiaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := u.Query()
+	//dst := "http://" + r.Host + "/youjia/live/" + id + ".m3u8?t=c1b3535d893682e6&u=freeuser&p=8&pid=&cid=" + cid + "&l=1601&d=c1b3535d893682e6&sid=" + q.Get("sid") + "&r=" + q.Get("r") + "&e=" + q.Get("e") + "&nc=" + q.Get("nc") + "&a=" + q.Get("a") + "&v=2"
 	dst := "http://gslb.gcable.cn:8070/live/" + id + ".m3u8?t=c1b3535d893682e6&u=freeuser&p=8&pid=&cid=" + cid + "&l=1601&d=c1b3535d893682e6&sid=" + q.Get("sid") + "&r=" + q.Get("r") + "&e=" + q.Get("e") + "&nc=" + q.Get("nc") + "&a=" + q.Get("a") + "&v=2"
 	w.Header().Set("Location", dst)
 	http.Error(w, dst, 302)

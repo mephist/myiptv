@@ -20,6 +20,8 @@ func main() {
 	http.HandleFunc("/hdlive/", sctvHandler)
 	http.HandleFunc("/api/", youtubeApiHandler)
 	http.HandleFunc("/videoplayback/", youtubeVideoHandler)
+	http.HandleFunc("/youjia/", youjiaApiHandler)
+	http.HandleFunc("/youjiaVideo/", youjiaVideoHandler)
 	http.HandleFunc("/", byrApiHandler)
 	http.ListenAndServe(":8090", nil)
 }
