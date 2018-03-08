@@ -14,6 +14,7 @@ func main() {
 	http.HandleFunc("/litv.m3u8", litvHandler)
 	http.HandleFunc("/fjtv.m3u8", fjtvHandler)
 	http.HandleFunc("/grtn.m3u8", grtnHandler)
+	http.HandleFunc("/youjia.m3u8", youjiaHandler)
 	http.HandleFunc("/live/", qmHandler)
 	http.HandleFunc("/sdlive/", sctvHandler)
 	http.HandleFunc("/hdlive/", sctvHandler)
