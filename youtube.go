@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -10,6 +11,58 @@ import (
 
 	log "github.com/tominescu/double-golang/simplelog"
 )
+
+func youtubeApiHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("Request URL:%s", r.URL)
+	url := "https://manifest.googlevideo.com" + r.URL.EscapedPath()
+	resp, err := http.Get(url)
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	content := strings.Replace(string(body), "https://manifest.googlevideo.com", "http://"+r.Host, -1)
+	re := regexp.MustCompile(`https://[\w\d-]+\.googlevideo.com`)
+	content = re.ReplaceAllString(content, "http://"+r.Host)
+	w.Header().Set("Content-type", "application/vnd.apple.mpegurl")
+	w.Write([]byte(content))
+}
+
+func youtubeVideoHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("Request URL:%s", r.URL)
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(503), 503)
+		return
+	}
+	host := r.Form.Get("hls_chunk_host")
+	if host == "" {
+		re := regexp.MustCompile(`[\w\d-]+\.googlevideo.com`)
+		host = re.FindString(r.URL.Path)
+		if host == "" {
+			http.Error(w, http.StatusText(503), 503)
+			return
+		}
+	}
+	url := "https://" + host + r.URL.EscapedPath()
+	if len(r.URL.RawQuery) > 0 {
+		url += "?" + r.URL.RawQuery
+	}
+	log.Debug("TS URL:%s", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("Content-type", "application/octet-stream")
+	io.Copy(w, resp.Body)
+}
 
 func youtubeIndexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
@@ -47,7 +100,7 @@ func youtubeIndexHandler(w http.ResponseWriter, r *http.Request) {
 	if q == "" {
 		dst = strings.Replace(dst, "https://manifest.googlevideo.com", "http://"+r.Host, 1)
 		w.Header().Set("Location", dst)
-		http.Error(w, http.StatusText(302), 302)
+		http.Error(w, dst, 302)
 		return
 	}
 	seq, err := strconv.Atoi(q)
@@ -77,5 +130,5 @@ func youtubeIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	dst = strings.Replace(urls[seq], "https://manifest.googlevideo.com", "http://"+r.Host, 1)
 	w.Header().Set("Location", dst)
-	http.Error(w, http.StatusText(302), 302)
+	http.Error(w, dst, 302)
 }

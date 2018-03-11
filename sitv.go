@@ -59,5 +59,5 @@ func sitvHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	dst := strings.Replace(string(body), "2300000", "4000000", 1)
 	w.Header().Set("Location", dst)
-	http.Error(w, http.StatusText(302), 302)
+	http.Error(w, dst, 302)
 }

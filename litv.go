@@ -40,5 +40,5 @@ func litvHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	dst := "http://btsu4k5-hisng.cdn.hinet.net/live/pool/" + id + "/litv-pc/" + string(hls[len(hls)-1])
 	w.Header().Set("Location", dst)
-	http.Error(w, http.StatusText(302), 302)
+	http.Error(w, dst, 302)
 }

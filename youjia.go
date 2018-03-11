@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,6 +19,28 @@ type Result struct {
 
 type Data struct {
 	AuthResult string `json:"authResult"`
+}
+
+func youjiaApiHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("Request URL:%s", r.URL)
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(503), 503)
+		return
+	}
+	host := r.Form.Get("host")
+	if host == "" {
+		host = "gslb.gcable.cn:8070"
+	}
+	url := strings.Replace(r.URL.String(), "/youjia", "http://"+host, -1)
+	log.Debug("Curl URL:%s", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		http.Error(w, http.StatusText(503), 503)
+		return
+	}
+	defer resp.Body.Close()
+	io.Copy(w, resp.Body)
 }
 
 func youjiaHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,8 +86,30 @@ func youjiaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := u.Query()
-	//dst := "http://" + r.Host + "/youjia/live/" + id + ".m3u8?t=c1b3535d893682e6&u=freeuser&p=8&pid=&cid=" + cid + "&l=1601&d=c1b3535d893682e6&sid=" + q.Get("sid") + "&r=" + q.Get("r") + "&e=" + q.Get("e") + "&nc=" + q.Get("nc") + "&a=" + q.Get("a") + "&v=2"
 	dst := "http://gslb.gcable.cn:8070/live/" + id + ".m3u8?t=c1b3535d893682e6&u=freeuser&p=8&pid=&cid=" + cid + "&l=1601&d=c1b3535d893682e6&sid=" + q.Get("sid") + "&r=" + q.Get("r") + "&e=" + q.Get("e") + "&nc=" + q.Get("nc") + "&a=" + q.Get("a") + "&v=2"
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp2, err := client.Get(dst)
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	defer resp2.Body.Close()
+	lv := resp2.Header.Get("Location")
+	if lv == "" {
+		io.Copy(w, resp2.Body)
+		return
+	}
+	u, err = url.Parse(lv)
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	dst = u.String() + "&host=" + u.Host
+	dst = strings.Replace(dst, u.Host, r.Host+"/youjia", 1)
 	w.Header().Set("Location", dst)
 	http.Error(w, dst, 302)
 }

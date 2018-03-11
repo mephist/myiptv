@@ -42,13 +42,13 @@ func grtnHandler(w http.ResponseWriter, r *http.Request) {
 	dst := strings.Replace(string(hls), "\\", "", -1)
 	req, _ = http.NewRequest("GET", dst, nil)
 	req.Header.Set("User-Agent", "curl/7.52.1")
-	resp, err = client.Do(req)
+	resp2, err := client.Do(req)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	defer resp.Body.Close()
-	body, err = ioutil.ReadAll(resp.Body)
+	defer resp2.Body.Close()
+	body, err = ioutil.ReadAll(resp2.Body)
 	re = regexp.MustCompile(`.*\.m3u8\?_upt=.*`)
 	hls = re.Find(body)
 	u, err := url.Parse(string(hls))
@@ -61,6 +61,7 @@ func grtnHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	w.Header().Set("Location", base.ResolveReference(u).String())
-	http.Error(w, http.StatusText(302), 302)
+	dst = base.ResolveReference(u).String()
+	w.Header().Set("Location", dst)
+	http.Error(w, dst, 302)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -9,6 +10,18 @@ import (
 
 	log "github.com/tominescu/double-golang/simplelog"
 )
+
+func fjtvApiHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("Request URL:%s", r.URL)
+	url := "http://stream6.fjtv.net" + r.URL.String()
+	resp, err := http.Get(url)
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
+	defer resp.Body.Close()
+	io.Copy(w, resp.Body)
+}
 
 func fjtvHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
@@ -42,13 +55,13 @@ func fjtvHandler(w http.ResponseWriter, r *http.Request) {
 	dst := strings.Replace(string(hls), "\\", "", -1)
 	req, _ = http.NewRequest("GET", dst, nil)
 	req.Header.Set("User-Agent", "curl/7.52.1")
-	resp, err = client.Do(req)
+	resp2, err := client.Do(req)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	defer resp.Body.Close()
-	body, err = ioutil.ReadAll(resp.Body)
+	defer resp2.Body.Close()
+	body, err = ioutil.ReadAll(resp2.Body)
 	re = regexp.MustCompile(`.*\.m3u8\?_upt=.*`)
 	hls = re.Find(body)
 	u, err := url.Parse(string(hls))
@@ -61,6 +74,7 @@ func fjtvHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	w.Header().Set("Location", base.ResolveReference(u).String())
-	http.Error(w, http.StatusText(302), 302)
+	dst = strings.Replace(base.ResolveReference(u).String(), "stream6.fjtv.net", r.Host, -1)
+	w.Header().Set("Location", dst)
+	http.Error(w, dst, 302)
 }
