@@ -4,13 +4,30 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 const MY_COPY_BUF_SIZE = 1024 * 4
 
-var gclient = &http.Client{}
+var MyHttpTransport http.RoundTripper = &http.Transport{
+	Proxy: http.ProxyFromEnvironment,
+	DialContext: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}).DialContext,
+	MaxIdleConns:          100,
+	IdleConnTimeout:       90 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ExpectContinueTimeout: 1 * time.Second,
+	MaxIdleConnsPerHost:   20,
+}
+
+var gclient = &http.Client{
+	Transport: MyHttpTransport,
+}
 
 func MyCopy(dst io.Writer, src io.Reader) (written int64, err error) {
 	buf := make([]byte, MY_COPY_BUF_SIZE)
