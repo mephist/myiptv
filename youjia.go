@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -40,7 +39,7 @@ func youjiaApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-	io.Copy(w, resp.Body)
+	MyCopy(w, resp.Body)
 }
 
 func youjiaHandler(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +99,7 @@ func youjiaHandler(w http.ResponseWriter, r *http.Request) {
 	defer resp2.Body.Close()
 	lv := resp2.Header.Get("Location")
 	if lv == "" {
-		io.Copy(w, resp2.Body)
+		MyCopy(w, resp2.Body)
 		return
 	}
 	u, err = url.Parse(lv)

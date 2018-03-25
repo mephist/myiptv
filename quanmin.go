@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"net/http"
 
 	log "github.com/tominescu/double-golang/simplelog"
@@ -17,5 +16,5 @@ func qmHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-	io.Copy(w, resp.Body)
+	MyCopy(w, resp.Body)
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	log "github.com/tominescu/double-golang/simplelog"
 )
@@ -11,22 +12,17 @@ import (
 func neu6tsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
 	url := "http://ts.media.neu6.edu.cn" + r.URL.Path
-	log.Debug("Curl url: %s", url)
+	bt := time.Now()
 	resp, err := http.Get(url)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
 		return
 	}
 	defer resp.Body.Close()
-	//io.Copy(w, resp.Body)
-	buf := make([]byte, 8192)
-	for {
-		n, err := resp.Body.Read(buf)
-		if err != nil {
-			break
-		}
-		w.Write(buf[0:n])
-	}
+	n, _ := MyCopy(w, resp.Body)
+	et := time.Now()
+	cost := et.Sub(bt).Nanoseconds()
+	log.Info("Curl url: %s cost: %.2fs download: %.2fMB speed:%.2fMbps", url, float64(cost)/1e9, float64(n)/1024/1024, float64(n)/float64(cost)*1e9/1024/1024*8)
 }
 
 func neu6Handler(w http.ResponseWriter, r *http.Request) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -20,7 +19,7 @@ func sctvHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 	if strings.HasSuffix(r.URL.Path, ".ts") {
-		io.Copy(w, resp.Body)
+		MyCopy(w, resp.Body)
 		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
