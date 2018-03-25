@@ -1,13 +1,20 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 
 	log "github.com/tominescu/double-golang/simplelog"
 )
 
+var DefaultThreadNum int
+
 func main() {
 	log.SetLevel(log.DEBUG)
+
+	flag.IntVar(&DefaultThreadNum, "t", 5, "Multi Download Thread Num")
+	flag.Parse()
+
 	http.HandleFunc("/sitv.m3u8", sitvHandler)
 	http.HandleFunc("/byr.m3u8", byrHandler)
 	http.HandleFunc("/youtube.m3u8", youtubeIndexHandler)
