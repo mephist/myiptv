@@ -22,7 +22,7 @@ var MyHttpTransport http.RoundTripper = &http.Transport{
 	IdleConnTimeout:       90 * time.Second,
 	TLSHandshakeTimeout:   10 * time.Second,
 	ExpectContinueTimeout: 1 * time.Second,
-	MaxIdleConnsPerHost:   20,
+	MaxIdleConnsPerHost:   100,
 }
 
 var gclient = &http.Client{
