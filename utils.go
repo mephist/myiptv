@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	log "github.com/tominescu/double-golang/simplelog"
 )
 
 const MY_COPY_BUF_SIZE = 1024 * 4
@@ -27,7 +29,7 @@ var MyHttpTransport http.RoundTripper = &http.Transport{
 
 var gclient = &http.Client{
 	Transport: MyHttpTransport,
-	Timeout:   10 * time.Second,
+	Timeout:   6 * time.Second,
 }
 
 func MyCopy(dst io.Writer, src io.Reader) (written int64, err error) {
@@ -86,6 +88,9 @@ func MultiDownload(w io.Writer, url string, threadNum int) (written int64, err e
 			curr++
 			n, _ := w.Write([]byte(body[curr]))
 			written += int64(n)
+			if n == 0 {
+				log.Debug("url %s part %d is empty", url, curr)
+			}
 			if curr == threadNum-1 {
 				return
 			}
