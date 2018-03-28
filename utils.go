@@ -27,6 +27,7 @@ var MyHttpTransport http.RoundTripper = &http.Transport{
 
 var gclient = &http.Client{
 	Transport: MyHttpTransport,
+	Timeout:   10 * time.Second,
 }
 
 func MyCopy(dst io.Writer, src io.Reader) (written int64, err error) {
@@ -96,20 +97,20 @@ func MultiDownload(w io.Writer, url string, threadNum int) (written int64, err e
 func Download(done chan int, body []string, url string, i, min, max int) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		done <- -1
+		done <- i
 		return err
 	}
 	range_header := "bytes=" + strconv.Itoa(min) + "-" + strconv.Itoa(max-1)
 	req.Header.Add("Range", range_header)
 	resp, err := gclient.Do(req)
 	if err != nil {
-		done <- -1
+		done <- i
 		return err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		done <- -1
+		done <- i
 		return err
 	}
 	body[i] = string(content)
