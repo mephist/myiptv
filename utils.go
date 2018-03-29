@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -77,9 +76,6 @@ func MultiDownload(w io.Writer, url string, threadNum int) (written int64, err e
 	}
 
 	for i := range doneChan {
-		if i == -1 {
-			return written, fmt.Errorf("Download partly failed")
-		}
 		done[i] = 1
 		for {
 			if done[curr+1] == 0 {
@@ -88,9 +84,6 @@ func MultiDownload(w io.Writer, url string, threadNum int) (written int64, err e
 			curr++
 			n, _ := w.Write([]byte(body[curr]))
 			written += int64(n)
-			if n == 0 {
-				log.Debug("url %s part %d is empty", url, curr)
-			}
 			if curr == threadNum-1 {
 				return
 			}
@@ -103,6 +96,7 @@ func Download(done chan int, body []string, url string, i, min, max int) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		done <- i
+		log.Debug("url %s part %d error: %s", url, i, err)
 		return err
 	}
 	range_header := "bytes=" + strconv.Itoa(min) + "-" + strconv.Itoa(max-1)
@@ -110,15 +104,15 @@ func Download(done chan int, body []string, url string, i, min, max int) error {
 	resp, err := gclient.Do(req)
 	if err != nil {
 		done <- i
+		log.Debug("url %s part %d error: %s", url, i, err)
 		return err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		done <- i
-		return err
+		log.Debug("url %s part %d error: %s", url, i, err)
 	}
 	body[i] = string(content)
 	done <- i
-	return nil
+	return err
 }
