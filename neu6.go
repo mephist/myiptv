@@ -11,7 +11,7 @@ import (
 
 func neu6tsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
-	url := "http://ts.media.neu6.edu.cn" + r.URL.Path
+	url := "https://ts.neu6.edu.cn" + r.URL.Path
 	bt := time.Now()
 	n, err := MultiDownload(w, url, DefaultThreadNum)
 	if err != nil {
@@ -35,7 +35,7 @@ func neu6Handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(503), 503)
 		return
 	}
-	url := "http://media2.neu6.edu.cn/hls/" + id + ".m3u8"
+	url := "https://media2.neu6.edu.cn/hls/" + id + ".m3u8"
 	resp, err := http.Get(url)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
@@ -47,6 +47,6 @@ func neu6Handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 503)
 		return
 	}
-	newBody := bytes.Replace(body, []byte("ts.media.neu6.edu.cn"), []byte(r.Host), -1)
+	newBody := bytes.Replace(body, []byte("https://ts.neu6.edu.cn"), []byte("http://"+r.Host), -1)
 	w.Write(newBody)
 }
