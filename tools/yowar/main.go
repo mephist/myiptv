@@ -56,7 +56,7 @@ func AddURL() {
 	data := Data{}
 	for sc.Scan() {
 		line := strings.TrimSpace(sc.Text())
-		if line == "" {
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "//") {
 			continue
 		}
 		line_parts := strings.Split(line, ",")
