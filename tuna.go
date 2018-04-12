@@ -1,8 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"io/ioutil"
+	"bufio"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -14,14 +15,16 @@ func tunaTsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("Request URL:%s", r.URL)
 	url := "https://iptv.tsinghua.edu.cn" + strings.TrimPrefix(r.URL.Path, "/tuna")
 	bt := time.Now()
-	n, err := MultiDownload(w, url, 5)
+	resp, err := http.Get(url)
 	if err != nil {
 		http.Error(w, err.Error(), 503)
 		return
 	}
+	defer resp.Body.Close()
+	n, err := io.Copy(w, resp.Body)
 	et := time.Now()
 	cost := et.Sub(bt).Nanoseconds()
-	log.Info("Curl url: %s download: %.2fMB cost: %.2fs speed:%.2fMbps threadNum:%d", url, float64(n)/1024/1024, float64(cost)/1e9, float64(n)/float64(cost)*1e9/1024/1024*8, DefaultThreadNum)
+	log.Info("Curl url: %s download: %.2fMB cost: %.2fs speed:%.2fMbps", url, float64(n)/1024/1024, float64(cost)/1e9, float64(n)/float64(cost)*1e9/1024/1024*8)
 }
 
 func tunaHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,11 +46,13 @@ func tunaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		http.Error(w, err.Error(), 503)
-		return
+
+	sc := bufio.NewScanner(resp.Body)
+	for sc.Scan() {
+		line := sc.Text()
+		if strings.HasSuffix(line, ".ts") {
+			line = "http://" + r.Host + "/tuna/hls/" + line
+		}
+		fmt.Fprintln(w, line)
 	}
-	newBody := bytes.Replace(body, []byte("https://iptv.tsinghua.edu.cn"), []byte("http://"+r.Host+"/tuna"), -1)
-	w.Write(newBody)
 }
